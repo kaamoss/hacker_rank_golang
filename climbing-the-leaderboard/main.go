@@ -9,29 +9,81 @@ import (
 	"strings"
 )
 
+func removeDuplicates(a []int) []int {
+	r := []int{}
+	seen := map[int]int{}
+	for _, val := range a {
+		if _, ok := seen[val]; !ok {
+			r = append(r, val)
+			seen[val] = val
+		}
+	}
+	return r
+}
+
+func getMidPoint(start, end int) int {
+	i := end - start
+	if i%2 == 0 {
+		return i/2 + start
+	}
+	return (i+1)/2 + start
+}
+
+func binarySearch(scores []int, v int, i int) int {
+	var mid int
+	var end int
+
+	start := 0
+	if i >= len(scores) {
+		end = len(scores) - 1
+	} else {
+		end = i
+	}
+
+	for true {
+		if end-start == 1 {
+			// fmt.Printf("1 - v: %d start: %d end %d\n", v, start, end)
+			if v < scores[end] {
+				return end + 2
+			} else if v < scores[start] {
+				return start + 2
+			}
+			return 1
+		}
+		if end == 0 {
+			return 1
+		}
+
+		mid = getMidPoint(start, end)
+
+		if v > scores[mid] {
+			end = mid
+		} else if v < scores[mid] {
+			start = mid
+		} else {
+			// v == scores[mid]
+			// fmt.Printf("2 - v: %d start: %d end %d\n", v, start, end)
+			return mid + 1
+		}
+	}
+	return end
+}
+
 // Complete the climbingLeaderboard function below.
-func climbingLeaderboard(scores []int32, alice []int32) []int32 {
-	var aliceRanks = make([]int32, len(alice), len(alice))
-	var lastScore int32
-	var uniqueScores = make([]int32, 1, len(scores))
+func climbingLeaderboard(scores []int, alice []int) []int {
+	r := make([]int, len(alice))
 
-	for len(scores) > 0 {
-		var tmpScore int32
-		tmpScore, scores = scores[len(scores)-1], scores[:len(scores)-1]
-		if tmpScore != lastScore {
-			lastScore = tmpScore
-			uniqueScores = append(uniqueScores, tmpScore)
-		}
+	//create scores and remove dups
+	uniqueScores := removeDuplicates(scores)
+	i := len(scores)
+
+	for a, v := range alice {
+		// fmt.Printf("1 - i: %d a: %d alice[a]: %d\n", i, a, alice[a])
+		i = binarySearch(uniqueScores, v, i-1)
+		r[a] = i
 	}
 
-	for foo, aliceScore := range alice {
-		index := 0
-		for index < len(uniqueScores) && aliceScore >= uniqueScores[index] {
-			index++
-		}
-		aliceRanks[foo] = int32(len(uniqueScores) - index + 1)
-	}
-	return aliceRanks
+	return r
 }
 
 func main() {
@@ -50,12 +102,12 @@ func main() {
 
 	scoresTemp := strings.Split(readLine(reader), " ")
 
-	var scores []int32
+	var scores []int
 
 	for i := 0; i < int(scoresCount); i++ {
 		scoresItemTemp, err := strconv.ParseInt(scoresTemp[i], 10, 64)
 		checkError(err)
-		scoresItem := int32(scoresItemTemp)
+		scoresItem := int(scoresItemTemp)
 		scores = append(scores, scoresItem)
 	}
 
@@ -64,12 +116,12 @@ func main() {
 
 	aliceTemp := strings.Split(readLine(reader), " ")
 
-	var alice []int32
+	var alice []int
 
 	for i := 0; i < int(aliceCount); i++ {
 		aliceItemTemp, err := strconv.ParseInt(aliceTemp[i], 10, 64)
 		checkError(err)
-		aliceItem := int32(aliceItemTemp)
+		aliceItem := int(aliceItemTemp)
 		alice = append(alice, aliceItem)
 	}
 
